@@ -1,4 +1,3 @@
-```markdown
 # Modular RAG System (AI Engineer Assessment)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
@@ -24,6 +23,7 @@ The system is designed with a clear separation of concerns to ensure modularity 
 - **OpenAI API Key**
 
 ### 1. Clone the Repository
+
 ```bash
 git clone <your-repo-url>
 cd ai_rag_assignment
