@@ -148,13 +148,3 @@ ai_rag_assignment/
 ## 📝 License
 
 This project is intended for educational and assessment purposes.
-
-```
-
-### **Summary of Changes**
-1.  **Architecture:** Updated to mention support for both OpenAI and Google Gemini.
-2.  **Prerequisites:** Added "Google Gemini" as an option.
-3.  **Configuration:** Added the `LLM_PROVIDER` instructions so users know how to switch between free and paid modes.
-4.  **Tech Stack:** Updated to list both models.
-
-```
