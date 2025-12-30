@@ -1,80 +1,56 @@
-"""Document ingestion and processing module.
+"""Document loading logic for the ingestion pipeline."""
 
-This module handles the loading of raw documents (currently PDFs) from disk
-and splitting them into smaller, manageable chunks for embedding.
-"""
-
-from typing import List
+import os
+from typing import List, Type
+from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader, TextLoader
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from src.config import settings
 from src.utils import setup_logger
+from src.ingestion.base import BaseIngestion
+from src.config import settings
 
 # Initialize logger for this module
 logger = setup_logger(__name__)
 
-def load_documents(directory_path: str) -> List[Document]:
-    """Loads PDF documents from a specified directory.
+def load_documents(
+    directory: str, 
+    glob_pattern: str = "*.pdf", 
+    loader_cls: Type = PyPDFLoader
+) -> List[Document]:
+    """
+    Loads documents from a directory matching a specific pattern.
 
     Args:
-        directory_path (str): The relative or absolute path to the directory
-            containing PDF files.
+        directory (str): Path to the directory containing files.
+        glob_pattern (str): The file pattern to match (e.g., "*.pdf", "*.txt").
+                            Defaults to "*.pdf".
+        loader_cls (Type): The LangChain loader class to use (e.g., PyPDFLoader).
+                           Defaults to PyPDFLoader.
 
     Returns:
-        List[Document]: A list of LangChain Document objects containing
-            the text content and metadata of the loaded files.
-
-    Raises:
-        FileNotFoundError: If the directory_path does not exist.
-        RuntimeError: If document loading fails (e.g., corrupted files).
+        List[Document]: A list of loaded documents.
     """
-    logger.info(f"Scanning directory for PDFs: {directory_path}")
-    
+    if not os.path.exists(directory):
+        logger.error(f"Directory not found: {directory}")
+        raise FileNotFoundError(f"Directory not found: {directory}")
+
+    logger.info(f"Loading documents from {directory} matching '{glob_pattern}'...")
+
     try:
-        loader = DirectoryLoader(directory_path, glob="*.pdf", loader_cls=PyPDFLoader)
-        docs = loader.load()
+        # Initialize DirectoryLoader with the dynamic loader class
+        loader = DirectoryLoader(
+            directory, 
+            glob=glob_pattern, 
+            loader_cls=loader_cls
+        )
+        documents = loader.load()
         
-        if not docs:
-            logger.warning(f"No documents found or loaded from {directory_path}")
+        if not documents:
+            logger.warning(f"No documents found in {directory} matching {glob_pattern}")
         else:
-            logger.info(f"Successfully loaded {len(docs)} documents from {directory_path}")
+            logger.info(f"Successfully loaded {len(documents)} documents.")
             
-        return docs
-        
+        return documents
+
     except Exception as e:
-        logger.error(f"Failed to load documents from {directory_path}. Error: {e}")
-        # Re-raise the exception so the calling function knows it failed
+        logger.error(f"Error loading documents: {e}")
         raise e
-
-def split_documents(documents: List[Document]) -> List[Document]:
-    """Splits a list of documents into smaller text chunks.
-
-    This function uses a RecursiveCharacterTextSplitter, which attempts to 
-    keep paragraphs and sentences together. Configuration for chunk size 
-    and overlap is pulled from global settings.
-
-    Args:
-        documents (List[Document]): The list of original documents to split.
-
-    Returns:
-        List[Document]: A list of smaller Document chunks ready for embedding.
-    """
-    if not documents:
-        logger.warning("No documents provided to split.")
-        return []
-
-    logger.debug(
-        f"Splitting documents with chunk_size={settings.chunk_size} "
-        f"and chunk_overlap={settings.chunk_overlap}"
-    )
-
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=settings.chunk_size,
-        chunk_overlap=settings.chunk_overlap
-    )
-    
-    chunks = splitter.split_documents(documents)
-    
-    logger.info(f"Split {len(documents)} documents into {len(chunks)} chunks.")
-    return chunks

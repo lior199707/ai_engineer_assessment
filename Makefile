@@ -2,7 +2,7 @@
 
 install:
 	conda env update --file environment.yml --prune
-	pre-commit install  # <--- Add this line here!
+	pre-commit install
 
 format:
 	ruff format .
@@ -11,13 +11,17 @@ lint:
 	ruff check . --fix
 
 test:
-	pytest tests/
+	python -m pytest tests/
 
+# UPDATED: Runs as a module (src.main)
+# Usage: make ingest data="path/to/docs"
 ingest:
-	python main.py ingest --data data/raw
+	python -m src.main ingest --data $(or $(data),data/raw)
 
+# UPDATED: Runs as a module (src.main)
+# Usage: make query Q="Your question here"
 query:
-	python main.py query --q "$(Q)"
+	python -m src.main query --q "$(Q)"
 
 clean:
 	python -c "import shutil; import pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]"

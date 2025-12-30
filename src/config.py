@@ -8,8 +8,13 @@ from enum import Enum
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Define the Enum
+class VectorDBType(str, Enum):
+    """Supported Vector Database providers."""
+    CHROMA = "chroma"
+    # PINECONE = "pinecone" (Future proofing placeholder)
+
 class LLMProvider(str, Enum):
+    """Supported Large Language Model providers."""
     OPENAI = "openai"
     GOOGLE = "google"
 
@@ -17,10 +22,14 @@ class Settings(BaseSettings):
     """Global application settings loaded from environment variables.
 
     Attributes:
-        llm_provider (str): The provider to use ('openai' or 'google').
+        llm_provider (LLMProvider): The provider to use ('openai' or 'google').
+        vector_db_type (VectorDBType): The vector database to use (default: 'chroma').
+        
+        vector_db_path (str): Local path to persist the vector database (Chroma-specific).
+        
+        # API Keys
         openai_api_key (str): API key for OpenAI services (Optional).
         google_api_key (str): API key for Google Gemini services (Optional).
-        vector_db_path (str): Local path to persist the vector database.
         
         # Provider specific models
         openai_model_name (str): OpenAI model name (e.g., 'gpt-4o').
@@ -29,16 +38,22 @@ class Settings(BaseSettings):
         openai_embedding_model (str): OpenAI embedding model.
         google_embedding_model (str): Google embedding model.
         
+        # Ingestion params
         chunk_size (int): Number of characters per text chunk.
         chunk_overlap (int): Number of overlapping characters between chunks.
+        
         log_level (str): Logging verbosity (DEBUG, INFO, WARNING, ERROR).
     """
-    # Core Logic
-    llm_provider: LLMProvider = LLMProvider.GOOGLE  # Default to google, can be set to 'openai'
+    
+    # Core Application Logic
+    llm_provider: LLMProvider = LLMProvider.GOOGLE
+    vector_db_type: VectorDBType = VectorDBType.CHROMA  # <--- New setting
+    
+    # Ingestion & Persistence
     vector_db_path: str = "data/vector_store"
-    log_level: str = "INFO"
     chunk_size: int = 1000
     chunk_overlap: int = 200
+    log_level: str = "INFO"
 
     # OpenAI Settings (Optional)
     openai_api_key: Optional[str] = None
