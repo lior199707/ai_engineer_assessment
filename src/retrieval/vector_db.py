@@ -8,22 +8,41 @@ the database for retrieval.
 import os
 from typing import List
 from langchain_core.documents import Document
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
-from src.config import settings
+from langchain_openai import OpenAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from src.config import settings, LLMProvider
+from src.utils import setup_logger
+
+logger = setup_logger(__name__)
 
 class VectorStoreManager:
     """Manages the creation and retrieval of vector embeddings.
 
     Attributes:
-        embeddings (OpenAIEmbeddings): The embedding model instance.
+        embeddings: The embedding model instance (OpenAI or Google).
         persist_directory (str): Path where the vector DB is saved.
     """
 
     def __init__(self):
         """Initializes the VectorStoreManager with settings from config."""
-        self.embeddings = OpenAIEmbeddings(model=settings.embedding_model)
         self.persist_directory = settings.vector_db_path
+        self.embeddings = self._get_embedding_model()
+
+    def _get_embedding_model(self):
+        """Selects the embedding model based on configuration."""
+        if settings.llm_provider == LLMProvider.GOOGLE:
+            logger.info(f"Using Google Embeddings: {settings.google_embedding_model}")
+            return GoogleGenerativeAIEmbeddings(
+                model=settings.google_embedding_model,
+                google_api_key=settings.google_api_key
+            )
+        else: # LLMProvider.OPENAI
+            logger.info(f"Using OpenAI Embeddings: {settings.openai_embedding_model}")
+            return OpenAIEmbeddings(
+                model=settings.openai_embedding_model,
+                openai_api_key=settings.openai_api_key
+            )
 
     def create_vector_store(self, chunks: List[Document]) -> Chroma:
         """Creates a new vector store from document chunks and saves it to disk.

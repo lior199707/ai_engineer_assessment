@@ -11,8 +11,8 @@ A production-ready, modular RAG (Retrieval-Augmented Generation) pipeline design
 The system is designed with a clear separation of concerns to ensure modularity and ease of testing:
 
 - **Ingestion Layer (`src/ingestion`):** Handles loading of raw documents (PDFs) and intelligent chunking using recursive character splitting.
-- **Retrieval Layer (`src/retrieval`):** Manages vector embeddings (OpenAI) and persistence using ChromaDB.
-- **Generation Layer (`src/generation`):** Orchestrates the LLM (OpenAI GPT) and manages prompt templates via LangChain.
+- **Retrieval Layer (`src/retrieval`):** Manages vector embeddings and persistence using ChromaDB. Supports **OpenAI** and **Google Gemini** embeddings.
+- **Generation Layer (`src/generation`):** Orchestrates the LLM and manages prompt templates via LangChain. Swappable support for **GPT-4o** and **Gemini 1.5 Flash**.
 - **Configuration:** Centralized `pydantic` settings management for strict typing and environment variable validation.
 
 ## 🚀 Setup & Installation
@@ -20,10 +20,9 @@ The system is designed with a clear separation of concerns to ensure modularity 
 ### Prerequisites
 - **Python 3.10+**
 - **Conda** (Anaconda or Miniconda)
-- **OpenAI API Key**
+- **API Key:** Either OpenAI (Paid) or Google Gemini (Free Tier available)
 
 ### 1. Clone the Repository
-
 ```bash
 git clone <your-repo-url>
 cd ai_rag_assignment
@@ -42,21 +41,28 @@ conda activate ai_rag_assignment
 
 ### 3. Configure Environment Variables
 
-Copy the example configuration file and add your secrets.
+Copy the example configuration file.
 
 ```bash
 cp .env.example .env
 
 ```
 
-Open `.env` and populate the required keys:
+Open `.env` and configure your provider.
+
+**Option A: Use Google Gemini (Free Tier)**
 
 ```ini
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIzaSy...
+
+```
+
+**Option B: Use OpenAI**
+
+```ini
+LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-...
-VECTOR_DB_PATH=data/vector_store
-MODEL_NAME=gpt-4o
-EMBEDDING_MODEL=text-embedding-3-small
-LOG_LEVEL=INFO
 
 ```
 
@@ -79,7 +85,7 @@ python main.py ingest --data data/raw
 
 ### 2. Query the System (RAG)
 
-Ask questions based on the ingested documents. The system will retrieve relevant context and generate an answer.
+Ask questions based on the ingested documents. The system will retrieve relevant context and generate an answer using the configured provider.
 
 ```bash
 python main.py query --q "What are the key findings in the document?"
@@ -112,7 +118,7 @@ pytest tests/unit/test_config.py
 
 ```text
 ai_rag_assignment/
-├── config/                 # Static configuration files (e.g., logging.yaml)
+├── config/                 # Static configuration files
 ├── data/
 │   ├── raw/                # Input documents (PDFs) go here
 │   └── vector_store/       # Persisted ChromaDB files
@@ -120,8 +126,8 @@ ai_rag_assignment/
 │   ├── ingestion/          # Data loading & splitting logic
 │   ├── retrieval/          # Vector DB & Embedding management
 │   ├── generation/         # LLM interaction & Prompt templates
-│   ├── utils/              # Helper utilities
-│   ├── config.py           # Pydantic settings definition
+│   ├── utils/              # Helper utilities (Logger)
+│   ├── config.py           # Pydantic settings & Enum definitions
 │   └── main.py             # CLI Entry point
 ├── tests/                  # Unit and Integration tests
 ├── .env.example            # Template for environment variables
@@ -134,7 +140,7 @@ ai_rag_assignment/
 ## 🛠 Tech Stack
 
 * **Orchestration:** LangChain
-* **LLM:** OpenAI GPT-4o
+* **LLM Support:** OpenAI GPT-4o, Google Gemini 1.5 Flash
 * **Vector Database:** ChromaDB (Local)
 * **Configuration:** Pydantic Settings
 * **Testing:** Pytest
@@ -144,5 +150,11 @@ ai_rag_assignment/
 This project is intended for educational and assessment purposes.
 
 ```
+
+### **Summary of Changes**
+1.  **Architecture:** Updated to mention support for both OpenAI and Google Gemini.
+2.  **Prerequisites:** Added "Google Gemini" as an option.
+3.  **Configuration:** Added the `LLM_PROVIDER` instructions so users know how to switch between free and paid modes.
+4.  **Tech Stack:** Updated to list both models.
 
 ```
