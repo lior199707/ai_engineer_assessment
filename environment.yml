@@ -1,0 +1,32 @@
+name: ai_rag_assignment
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    # Core Orchestration
+    - langchain>=0.1.0
+    - langchain-community
+    - langchain-openai
+    - langchain-text-splitters
+    # - llama-index  # Uncomment if you prefer LlamaIndex over LangChain
+
+    # Vector Database (Local & Production-ready)
+    - chromadb>=0.4.0
+    - faiss-cpu
+    
+    # Utilities
+    - python-dotenv
+    - pydantic>=2.0
+    - pydantic-settings
+    - tiktoken          # Token counting
+    - numpy
+    - pandas
+
+    # Dev & Testing
+    - pytest
+    - pytest-asyncio
+    - ruff              # Fast linting/formatting
+    - ipykernel         # For notebooks

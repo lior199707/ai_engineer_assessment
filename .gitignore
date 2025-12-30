@@ -1,0 +1,32 @@
+# Python / Conda
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+.env
+.venv
+env/
+venv/
+
+# Environment Variables (CRITICAL: Never commit API keys)
+.env
+.env.local
+
+# IDE Settings
+.vscode/
+.idea/
+
+# Data & Models (Don't commit large binaries or datasets)
+data/raw/*
+data/vector_store/*
+!data/raw/.gitkeep  # Keep the folder structure, but ignore contents
+!data/vector_store/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Mac OS
+.DS_Store
