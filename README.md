@@ -29,26 +29,44 @@ cd ai_rag_assignment
 
 ```
 
-### 2. Create the Environment
+### 2. Initial Environment Setup
 
-This project uses a Conda environment to manage dependencies.
+Create the environment and install all dependencies (including `make` and `pre-commit`).
 
 ```bash
-conda env create -f environment.yml
+conda env update --file environment.yml --prune
 conda activate ai_rag_assignment
 
 ```
 
-### 3. Configure Environment Variables
+### 3. Install Git Hooks
 
-Copy the example configuration file.
+This ensures code quality checks run automatically before every commit.
+
+```bash
+make install
+
+```
+
+### 4. Configure Environment Variables
+
+Copy the example configuration file to create your local `.env` file.
+
+**Linux / Mac / PowerShell / Git Bash:**
 
 ```bash
 cp .env.example .env
 
 ```
 
-Open `.env` and configure your provider.
+**Windows (Command Prompt):**
+
+```cmd
+copy .env.example .env
+
+```
+
+Open `.env` and configure your provider:
 
 **Option A: Use Google Gemini (Free Tier)**
 
@@ -68,27 +86,39 @@ OPENAI_API_KEY=sk-...
 
 ---
 
-## 🏃 Usage
+## 🛠 Development & Automation
 
-The application exposes a Command Line Interface (CLI) via `main.py` for easy interaction.
+This project uses a `Makefile` to automate common development tasks.
+
+| Command | Description |
+| --- | --- |
+| `make install` | Updates Conda environment and installs pre-commit hooks |
+| `make format` | Formats code using Ruff |
+| `make lint` | Checks for linting errors |
+| `make test` | Runs the test suite |
+| `make clean` | Removes cache files (Cross-platform safe) |
+
+---
+
+## 🏃 Usage
 
 ### 1. Ingest Documents
 
-Place your source PDF files into the `data/raw/` directory. Then, run the ingestion pipeline to parse, chunk, and index the data.
+Place your source PDF files into the `data/raw/` directory.
 
 ```bash
-python main.py ingest --data data/raw
+make ingest
 
 ```
 
 *Output: Vector store will be created in `data/vector_store/`.*
 
-### 2. Query the System (RAG)
+### 2. Query the System
 
-Ask questions based on the ingested documents. The system will retrieve relevant context and generate an answer using the configured provider.
+Ask questions based on the ingested documents.
 
 ```bash
-python main.py query --q "What are the key findings in the document?"
+make query Q="What are the key findings?"
 
 ```
 
@@ -101,14 +131,7 @@ The project includes a test suite configured with `pytest`.
 To run all tests:
 
 ```bash
-pytest tests/
-
-```
-
-To run a specific test file:
-
-```bash
-pytest tests/unit/test_config.py
+make test
 
 ```
 
@@ -133,6 +156,7 @@ ai_rag_assignment/
 ├── .env.example            # Template for environment variables
 ├── .gitignore              # Git ignore rules
 ├── environment.yml         # Conda environment definition
+├── Makefile                # Task automation
 └── README.md               # Project documentation
 
 ```
@@ -143,7 +167,7 @@ ai_rag_assignment/
 * **LLM Support:** OpenAI GPT-4o, Google Gemini 1.5 Flash
 * **Vector Database:** ChromaDB (Local)
 * **Configuration:** Pydantic Settings
-* **Testing:** Pytest
+* **Quality Control:** Ruff, Pre-commit
 
 ## 📝 License
 

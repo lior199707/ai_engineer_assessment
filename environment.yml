@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.10
+  - make
   - pip
   - pip:
     # Core Orchestration
@@ -12,6 +13,7 @@ dependencies:
     - langchain-openai
     - langchain-text-splitters
     - langchain-google-genai
+    - pre-commit
     # - llama-index  # Uncomment if you prefer LlamaIndex over LangChain
 
     # Vector Database (Local & Production-ready)

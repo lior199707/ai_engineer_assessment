@@ -11,7 +11,6 @@ Usage:
 """
 
 import argparse
-from src.config import settings
 from src.ingestion.loader import load_documents, split_documents
 from src.retrieval.vector_db import VectorStoreManager
 from src.generation.llm import RAGGenerator
