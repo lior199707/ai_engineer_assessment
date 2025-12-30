@@ -27,6 +27,7 @@ dependencies:
     - tiktoken          # Token counting
     - numpy
     - pandas
+    - pypdf
 
     # Dev & Testing
     - pytest
