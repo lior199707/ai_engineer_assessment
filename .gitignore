@@ -18,11 +18,12 @@ venv/
 .vscode/
 .idea/
 
-# Data & Models (Don't commit large binaries or datasets)
+# Data & Models
 data/raw/*
-!data/raw/.gitkeep  # Keep the folder structure, but ignore contents
+!data/raw/.gitkeep
 
-data/vector_store/  # Ignore this completely: It's auto-generated and auto-deleted
+# Completely ignore the vector database folder
+data/vector_store/
 
 
 # Logs
