@@ -67,10 +67,6 @@ conda env create -f environment.yml
 
 # Activate the environment
 conda activate ai_rag_assignment
-
-# Configuration: Rename the example environment file
-mv .env.example .env
-
 ```
 
 ### 3. Setup environment variables: Rename .env.example to .env.
