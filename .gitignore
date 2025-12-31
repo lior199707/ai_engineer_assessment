@@ -20,9 +20,10 @@ venv/
 
 # Data & Models (Don't commit large binaries or datasets)
 data/raw/*
-data/vector_store/*
 !data/raw/.gitkeep  # Keep the folder structure, but ignore contents
-!data/vector_store/.gitkeep
+
+data/vector_store/  # Ignore this completely: It's auto-generated and auto-deleted
+
 
 # Logs
 logs/
