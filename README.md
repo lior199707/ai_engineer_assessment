@@ -172,10 +172,3 @@ graph LR
 ## 📝 License
 
 This project is intended for educational and assessment purposes.
-
-```
-
-### Next Step
-You are all set! Copy this content into your `README.md`, commit your changes, and you are ready for tomorrow. Good luck with the assignment!
-
-```
