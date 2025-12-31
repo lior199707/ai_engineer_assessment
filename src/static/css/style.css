@@ -1,0 +1,123 @@
+:root {
+    --primary: #5BE78A;         /* Your specific green from the image */
+    --primary-hover: #4cd179;   /* Slightly darker green for buttons */
+    --bg: #1a1c1e;              /* Dark background like your image */
+    --card-bg: #2d2f31;         /* Darker card background */
+    --text-main: #e2e8f0;       /* Light text for readability on dark bg */
+    --text-muted: #94a3b8;
+    --border: #3f4144;
+}
+
+body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    padding: 2rem;
+}
+
+.app-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+header h1 span {
+    color: var(--primary);
+    font-weight: 300;
+}
+
+.search-section {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    border-color: var(--primary);
+}
+
+button {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover { background-color: var(--primary-hover); }
+
+.result-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.job-title { font-weight: 700; color: var(--primary); }
+.source-tag { font-size: 0.8rem; color: var(--text-muted); }
+.content { line-height: 1.6; font-size: 0.95rem; }
+
+.status-hidden { display: none; }
+.status-visible { text-align: center; margin: 1rem; color: var(--primary); }
+
+/* Similarity Score Badge 
+   Provides visual feedback on the quality of the match.
+*/
+.score-pill {
+    background-color: var(--primary); /* Requested #5BE78A */
+    color: #1a1c1e;                 /* Dark contrast for accessibility */
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.025em;
+    box-shadow: 0 2px 4px rgba(91, 231, 138, 0.2);
+}
+
+/* Result Metadata Footer 
+   Used for transparency (Showing Chunk IDs and Sources).
+*/
+.result-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: 'Courier New', monospace; /* Monospace for 'technical' feel */
+}
+
+.id-tag {
+    background: rgba(91, 231, 138, 0.1);
+    color: var(--primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}

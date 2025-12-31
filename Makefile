@@ -26,3 +26,6 @@ query:
 clean:
 	python -c "import shutil; import pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]"
 	python -c "import shutil; import pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('.pytest_cache')]"
+
+run:
+	python -m uvicorn src.api.main:app --reload --port 8000

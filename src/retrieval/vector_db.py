@@ -1,16 +1,16 @@
 """Vector Database Factory and Implementations.
 
 This module uses the Factory Pattern to provide a unified interface for 
-different vector database backends (e.g., Chroma, Pinecone). 
-It allows the application to switch databases and embedding providers 
-just by changing configuration.
+different vector database backends. It handles the initialization of 
+embedding models (OpenAI, Google, HuggingFace) and provides a secure 
+property to access the underlying vector store engine.
 """
 
 import os
 import shutil
-from typing import List
+from typing import List, Optional
 from langchain_core.documents import Document
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_core.vectorstores import VectorStoreRetriever
 
 # Imports for all supported embedding providers
@@ -26,42 +26,71 @@ logger = setup_logger(__name__)
 
 class ChromaVectorDB(BaseVectorDB):
     """
-    ChromaDB implementation of the vector store.
+    ChromaDB implementation of the vector store wrapper.
     
+    This class encapsulates the LangChain Chroma instance, providing 
+    lifecycle management and a standardized interface for retrieval.
+
     Attributes:
         persist_directory (str): Local path where the vector DB is saved.
-        embeddings (Embeddings): The LangChain embedding model instance.
+        embeddings (Embeddings): The initialized LangChain embedding model.
+        _store (Optional[Chroma]): Internal cache of the LangChain Chroma instance.
     """
 
     def __init__(self):
-        """Initializes ChromaDB with settings from config."""
+        """Initializes ChromaDB wrapper with settings from the configuration."""
         self.persist_directory = settings.vector_db_path
         self.embeddings = self._get_embedding_model()
+        self._store = None
+
+    @property
+    def store(self) -> Chroma:
+        """
+        Exposes the underlying LangChain Chroma instance.
+
+        This property allows the API layer to perform advanced searches 
+        (e.g., similarity_search_with_relevance_scores) that aren't 
+        available through the standard high-level retriever.
+
+        Returns:
+            Chroma: The initialized LangChain Chroma object.
+
+        Raises:
+            FileNotFoundError: If the database hasn't been created on disk.
+        """
+        if self._store is None:
+            if not os.path.exists(self.persist_directory):
+                raise FileNotFoundError(f"No DB found at {self.persist_directory}")
+            self._store = Chroma(
+                persist_directory=self.persist_directory,
+                embedding_function=self.embeddings
+            )
+        return self._store
 
     def _get_embedding_model(self):
         """
-        Selects the embedding model based on configuration.
+        Selects and initializes the embedding model based on configuration.
         
         Returns:
-            Embeddings: The initialized LangChain embedding model.
+            Embeddings: The initialized LangChain embedding model instance.
             
         Raises:
             ValueError: If an unsupported provider is configured.
         """
         provider = settings.embedding_provider
 
-        if provider == EmbeddingProvider.GOOGLE:
+        if provider == EmbeddingProvider.OPENAI:
+            logger.info(f"Using OpenAI Embeddings: {settings.openai_embedding_model}")
+            return OpenAIEmbeddings(
+                model=settings.openai_embedding_model,
+                api_key=settings.openai_api_key
+            )
+        
+        elif provider == EmbeddingProvider.GOOGLE:
             logger.info(f"Using Google Embeddings: {settings.google_embedding_model}")
             return GoogleGenerativeAIEmbeddings(
                 model=settings.google_embedding_model,
                 google_api_key=settings.google_api_key
-            )
-        
-        elif provider == EmbeddingProvider.OPENAI:
-            logger.info(f"Using OpenAI Embeddings: {settings.openai_embedding_model}")
-            return OpenAIEmbeddings(
-                model=settings.openai_embedding_model,
-                openai_api_key=settings.openai_api_key
             )
             
         elif provider == EmbeddingProvider.HUGGINGFACE:
@@ -72,20 +101,23 @@ class ChromaVectorDB(BaseVectorDB):
             raise ValueError(f"Unsupported Embedding Provider: {provider}")
 
     def create_vector_store(self, chunks: List[Document]) -> None:
-        """Persists document chunks to disk using Chroma."""
+        """
+        Persists document chunks to disk using the Chroma engine.
+
+        Args:
+            chunks (List[Document]): Processed LangChain documents to be indexed.
+        """
         if not chunks:
-            logger.warning("No chunks provided. Skipping.")
+            logger.warning("No chunks provided for ingestion. Skipping.")
             return
 
         logger.info(f"Persisting {len(chunks)} chunks to {self.persist_directory}...")
         try:
-            # Safety Check: If we switch embedding models, we MUST clear the old DB
-            # because dimensions will mismatch (e.g. 768 vs 384).
             if os.path.exists(self.persist_directory):
-                logger.warning("Existing DB found. Clearing it to ensure dimension compatibility.")
+                logger.warning("Existing DB found. Clearing to prevent dimension mismatch.")
                 shutil.rmtree(self.persist_directory)
 
-            Chroma.from_documents(
+            self._store = Chroma.from_documents(
                 documents=chunks,
                 embedding=self.embeddings,
                 persist_directory=self.persist_directory
@@ -96,36 +128,22 @@ class ChromaVectorDB(BaseVectorDB):
             raise e
 
     def as_retriever(self) -> VectorStoreRetriever:
-        """Hydrates the DB from disk and returns a retriever."""
-        if not os.path.exists(self.persist_directory):
-            error_msg = f"Vector store not found at {self.persist_directory}."
-            logger.error(error_msg)
-            raise FileNotFoundError(error_msg)
-            
-        logger.info(f"Loading vector store from {self.persist_directory}")
-        vectorstore = Chroma(
-            persist_directory=self.persist_directory, 
-            embedding_function=self.embeddings
-        )
-        return vectorstore.as_retriever(search_kwargs={"k": 5})
+        """
+        Returns the vector store as a standard LangChain retriever.
 
+        Returns:
+            VectorStoreRetriever: A hydrated retriever with k=5.
+        """
+        return self.store.as_retriever(search_kwargs={"k": 5})
 
 def get_vector_db() -> BaseVectorDB:
     """
-    Factory function to get the configured Vector DB instance.
+    Factory function to retrieve the configured Vector DB instance.
     
     Returns:
-        BaseVectorDB: A concrete instance (e.g., ChromaVectorDB) based on settings.
-    
-    Raises:
-        ValueError: If the configured vector_db_type is unsupported.
+        BaseVectorDB: A concrete database instance (e.g., ChromaVectorDB).
     """
     if settings.vector_db_type == VectorDBType.CHROMA:
         return ChromaVectorDB()
-    
-    # Future extensibility:
-    # elif settings.vector_db_type == VectorDBType.PINECONE:
-    #     return PineconeVectorDB()
-    
     else:
         raise ValueError(f"Unsupported Vector DB Type: {settings.vector_db_type}")

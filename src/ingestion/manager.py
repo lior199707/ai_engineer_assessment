@@ -10,7 +10,6 @@ from langchain_core.documents import Document
 from src.ingestion.base import BaseIngestion
 from src.ingestion.loader import load_documents
 from src.ingestion.splitter import split_documents
-from src.config import settings
 from src.utils import setup_logger
 
 logger = setup_logger(__name__)
@@ -28,23 +27,21 @@ class IngestionManager(BaseIngestion):
         """
         Loads documents from the file system.
         
-        It extracts specific configuration options from `kwargs` to pass
-        to the underlying loader, maintaining flexibility.
+        Delegates the loading process to `loader.load_documents`, which 
+        automatically handles supported file types (CSV, PDF) found in the source directory.
 
         Args:
             source (str): The directory path to load from.
-            **kwargs: specific options. Supported keys:
-                      - glob_pattern (str): The file pattern to match. Defaults to "*.pdf".
+            **kwargs: Reserved for future extensibility (e.g., recursive loading).
 
         Returns:
             List[Document]: A list of loaded documents.
         """
-        # Extract the pattern from kwargs, defaulting to PDF if not provided
-        # This keeps the Manager robust: it handles missing args gracefully
-        pattern = kwargs.get("glob_pattern", "*.pdf")
+        logger.info(f"Manager delegating load to loader module for source: {source}")
         
-        logger.info(f"Manager delegating load to loader module with pattern='{pattern}'")
-        return load_documents(source, glob_pattern=pattern)
+        # We no longer pass 'glob_pattern' because the loader now intelligently 
+        # scans for all supported formats (CSV & PDF)
+        return load_documents(source)
 
     def chunk(self, documents: List[Document], chunk_size: Optional[int] = None) -> List[Document]:
         """

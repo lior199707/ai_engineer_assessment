@@ -1,56 +1,66 @@
-"""Document loading logic for the ingestion pipeline."""
+"""Document loading logic for the ingestion pipeline.
+
+This module handles the loading of raw data files from the disk.
+It supports multiple file formats (PDF, CSV) to satisfy assignment requirements.
+"""
 
 import os
-from typing import List, Type
-from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader, TextLoader
+import glob
+from typing import List
+from langchain_community.document_loaders import PyPDFLoader, CSVLoader
 from langchain_core.documents import Document
 from src.utils import setup_logger
-from src.ingestion.base import BaseIngestion
-from src.config import settings
 
 # Initialize logger for this module
 logger = setup_logger(__name__)
 
-def load_documents(
-    directory: str, 
-    glob_pattern: str = "*.pdf", 
-    loader_cls: Type = PyPDFLoader
-) -> List[Document]:
+def load_documents(directory: str) -> List[Document]:
     """
-    Loads documents from a directory matching a specific pattern.
+    Loads all supported documents (PDF and CSV) from a directory.
 
     Args:
-        directory (str): Path to the directory containing files.
-        glob_pattern (str): The file pattern to match (e.g., "*.pdf", "*.txt").
-                            Defaults to "*.pdf".
-        loader_cls (Type): The LangChain loader class to use (e.g., PyPDFLoader).
-                           Defaults to PyPDFLoader.
+        directory (str): Path to the directory containing raw files.
 
     Returns:
-        List[Document]: A list of loaded documents.
+        List[Document]: A combined list of loaded documents.
+    
+    Raises:
+        FileNotFoundError: If the directory does not exist.
     """
     if not os.path.exists(directory):
         logger.error(f"Directory not found: {directory}")
         raise FileNotFoundError(f"Directory not found: {directory}")
 
-    logger.info(f"Loading documents from {directory} matching '{glob_pattern}'...")
+    documents = []
+    
+    # 1. Load PDFs
+    pdf_files = glob.glob(os.path.join(directory, "*.pdf"))
+    for file_path in pdf_files:
+        try:
+            logger.info(f"Loading PDF: {file_path}")
+            loader = PyPDFLoader(file_path)
+            documents.extend(loader.load())
+        except Exception as e:
+            logger.error(f"Failed to load PDF {file_path}: {e}")
 
-    try:
-        # Initialize DirectoryLoader with the dynamic loader class
-        loader = DirectoryLoader(
-            directory, 
-            glob=glob_pattern, 
-            loader_cls=loader_cls
-        )
-        documents = loader.load()
+    # 2. Load CSVs (FIX: Added encoding='utf-8')
+    csv_files = glob.glob(os.path.join(directory, "*.csv"))
+    for file_path in csv_files:
+        try:
+            logger.info(f"Loading CSV: {file_path}")
+            # FIX: explicit encoding handles Windows issues with special chars
+            loader = CSVLoader(
+                file_path=file_path, 
+                source_column="Job Title", 
+                encoding="utf-8"
+            )
+            documents.extend(loader.load())
+        except Exception as e:
+            logger.error(f"Failed to load CSV {file_path}: {e}")
+
+    if not documents:
+        logger.warning(f"No PDF or CSV documents found in {directory}")
+    else:
+        logger.info(f"Successfully loaded {len(documents)} total documents.")
         
-        if not documents:
-            logger.warning(f"No documents found in {directory} matching {glob_pattern}")
-        else:
-            logger.info(f"Successfully loaded {len(documents)} documents.")
-            
-        return documents
-
-    except Exception as e:
-        logger.error(f"Error loading documents: {e}")
-        raise e
+    return documents

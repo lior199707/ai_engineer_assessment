@@ -10,21 +10,26 @@ dependencies:
     # Core Orchestration
     - langchain>=0.1.0
     - langchain-community
-    - langchain-openai
+    - langchain-openai        # REQUIRED: For text-embedding-3-small [cite: 33]
+    - langchain-chroma        # NEW: Fixes deprecation warnings for Chroma
     - langchain-text-splitters
     - langchain-google-genai
     - pre-commit
-    # - llama-index  # Uncomment if you prefer LlamaIndex over LangChain
 
-    # Vector Database (Local & Production-ready)
-    - chromadb>=0.4.0
+    # Vector Database
+    - chromadb>=0.4.0         # REQUIRED: Selected Vector DB [cite: 30]
     - faiss-cpu
     
+    # API & Backend (NEW REQUIREMENTS)
+    - fastapi                 # REQUIRED: Backend framework 
+    - uvicorn[standard]       # REQUIRED: Server to run FastAPI
+    - python-multipart        # Helper for file handling in API
+
     # Utilities
     - python-dotenv
     - pydantic>=2.0
     - pydantic-settings
-    - tiktoken          # Token counting
+    - tiktoken
     - numpy
     - pandas
     - pypdf
@@ -35,5 +40,5 @@ dependencies:
     # Dev & Testing
     - pytest
     - pytest-asyncio
-    - ruff              # Fast linting/formatting
-    - ipykernel         # For notebooks
+    - ruff 
+    - ipykernel

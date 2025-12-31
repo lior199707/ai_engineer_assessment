@@ -1,174 +1,129 @@
-# 🤖 AI RAG Assignment: Hybrid Retrieval-Augmented Generation
+# 🤖 SoluGen AI: Enterprise RAG Matching Engine
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Conda](https://img.shields.io/badge/Conda-Env-green)
-![Status](https://img.shields.io/badge/Status-Development-orange)
+## 📋 Project Overview
 
-A professional, modular RAG system built with **Python 3.10**, **LangChain**, and **ChromaDB**.
-
-This project implements a **Hybrid Architecture** that combines the reasoning power of **Google Gemini** (Cloud) with the speed and privacy of **HuggingFace Embeddings** (Local/CPU).
+This system is a high-fidelity **Retrieval-Augmented Generation (RAG)** platform designed to solve the "Semantic Gap" in recruitment. Traditional keyword searches often fail to find a "Data Scientist" when a query asks for a "Predictive Modeling Expert." This engine uses vector embeddings to understand underlying intent, effectively matching complex candidate descriptions to the specific job roles in the database.
 
 ---
 
-## 🛠 Tech Stack
+## 🏗 Architectural Rationale (Senior Engineering Insights)
 
-* **Orchestration:** LangChain
-* **LLM Support:** Google Gemini (1.5 / 2.5), OpenAI GPT-4o
-* **Embedding Support:** HuggingFace (Local), Google GenAI, OpenAI
-* **Vector Database:** ChromaDB (Local)
-* **Configuration:** Pydantic Settings
-* **Quality Control:** Ruff, Pre-commit
+### 1. Choice of Vector Database: Why ChromaDB?
+
+For this specific assignment, **ChromaDB** was selected over cloud-native solutions for the following strategic reasons:
+
+* **Zero-Latency Local Persistence:** By co-locating the DB on the same infrastructure as the API, we eliminate network overhead during retrieval, providing sub-100ms response times.
+* **Explainable AI (XAI):** Chroma provides direct access to `relevance_scores` and document indices. We have exposed these in the UI to build trust with recruiters by showing *why* a candidate was matched.
+* **Privacy by Design:** Recruitment data is sensitive. By using a local instance, data remains within the controlled environment during the retrieval phase.
+
+### 2. Quality Control: Similarity Thresholding
+
+A signature feature of this implementation is the **Similarity Threshold (0.3 floor)**.
+
+* **The Problem:** Standard RAG systems always return the "top-k" results, even if they are completely irrelevant to the query.
+* **The Solution:** Our API calculates the Cosine Similarity and rejects any chunk with a score below 0.3. This acts as a "Guardrail," ensuring the LLM never receives "junk" data that could lead to hallucinations.
+
+### 3. Hybrid Strategy & Factory Pattern
+
+We utilize a **Local-First Embedding Layer** (`all-MiniLM-L6-v2`) combined with a **Cloud-Intelligence Generation Layer** (Gemini/OpenAI). The system is built using the **Factory Pattern**, allowing the embedding provider or the database backend to be swapped via `.env` configuration without changing business logic.
 
 ---
 
-## 🌟 Key Features
+## 📂 Dataset & Usage Documentation
 
-* **Hybrid RAG Architecture:**
-    * 🧠 **Brain:** Cloud LLM (Google Gemini / OpenAI).
-    * 📚 **Memory:** Local Embeddings (`all-MiniLM-L6-v2`) for zero-latency, free retrieval.
-* **Factory Pattern Design:** Easily switch between OpenAI, Google, or Local models via configuration.
-* **Robust Ingestion Pipeline:** Auto-cleans database on schema changes to prevent dimension mismatch errors.
-* **Developer Friendly:** Includes a `Makefile` for one-command execution and Type-safe configuration.
+### Why this Dataset (`jobs.csv`)?
+
+I chose the job description dataset because recruitment is a high-stakes domain where **context matters more than keywords**.
+
+* It contains unstructured text with overlapping terminology (e.g., Data Science vs. Data Engineering).
+* It allows for the demonstration of metadata mapping (mapping the "source" column to "Job Title" in the UI).
+
+### Expected User Questions
+
+The system is optimized for high-value semantic queries:
+
+1. **Requirement Matching:** *"Who is the ideal candidate for a role requiring 5+ years of T-SQL and Predictive Modeling?"*
+2. **Gap Analysis:** *"What specific certifications are required for the Clinical Lab roles?"*
+3. **Cross-Functional Search:** *"Find me roles that combine Healthcare knowledge with Machine Learning."*
+
+---
+
+## 🛠 Setup & Developer Experience (DX)
+
+### 1. Prerequisites
+
+* **Conda** (Anaconda or Miniconda)
+* **Google Gemini API Key** (Set in `.env`)
+
+### 2. Environment Installation
+
+The project uses a `environment.yml` file for reproducible dependency management.
+
+```bash
+# Create the environment from the yaml file
+conda env create -f environment.yml
+
+# Activate the environment
+conda activate ai_rag_assignment
+
+```
+
+### 3. Automation via Makefile
+
+We provide a simplified entry point for all major operations to ensure a seamless evaluation experience:
+
+* **Build the Index (Ingestion):**
+```bash
+make ingest
+
+```
+
+
+* **Launch the Application (UI + API):**
+```bash
+make run
+
+```
+
+
+*The UI is accessible at: **[http://127.0.0.1:8000*](http://127.0.0.1:8000)**
+* **Run Test Suite:**
+```bash
+make test
+
+```
+
+
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-ai_rag_assignment/
 ├── data/
-│   ├── raw/                 # Drop your PDFs here
-│   └── vector_store/        # Auto-generated ChromaDB files (Git-ignored)
+│   ├── raw/                # Source CSV/PDF documents (jobs.csv)
+│   └── vector_store/       # Persistent ChromaDB files
 ├── src/
-│   ├── ingestion/           # Document loading & splitting logic
-│   ├── retrieval/           # Vector DB & Embedding factory
-│   ├── generation/          # LLM interface (Gemini/OpenAI)
-│   ├── config.py            # Centralized settings management
-│   └── main.py              # CLI Entry point
-├── environment.yml          # Conda environment definition
-├── Makefile                 # Shortcut commands
-└── README.md                # Project documentation
+│   ├── api/                # FastAPI logic & Pydantic schemas
+│   ├── ingestion/          # Multi-format loaders & splitters
+│   ├── retrieval/          # Vector DB wrappers & Property decorators
+│   ├── static/             # Modern Green UI (HTML/CSS/JS)
+│   └── config.py           # Type-safe environment management
+├── tests/                  # Unit and Integration suites
+├── environment.yml         # Conda environment definition
+└── Makefile                # Developer shortcuts (run, ingest, test)
 
 ```
 
 ---
 
-## 🚀 Setup & Installation
+## 📈 Scalability Roadmap
 
-### 1. Prerequisites
-
-* **Conda** (Anaconda or Miniconda)
-* A **Google Gemini API Key** (Get it from [Google AI Studio](https://aistudio.google.com/))
-
-### 2. Clone & Environment
-
-```bash
-# Clone the repository
-git clone https://github.com/lior199707/ai_engineer_assessment.git
-cd ai_rag_assignment
-
-# Create and activate the Conda environment
-conda env update --file environment.yml --prune
-conda activate ai_rag_assignment
-
-```
-
-### 3. Configuration (.env)
-
-Create a `.env` file in the root directory:
-
-```ini
-# .env file
-
-# --- API Keys ---
-GOOGLE_API_KEY=your_actual_api_key_here
-
-# --- Model Selection ---
-# Use the model version available to your API key (e.g., gemini-1.5-flash or gemini-2.5-flash)
-GOOGLE_MODEL_NAME=gemini-2.5-flash
-
-# --- Architecture Settings ---
-LLM_PROVIDER=google
-EMBEDDING_PROVIDER=huggingface
-VECTOR_DB_TYPE=chroma
-
-# --- Ingestion Settings ---
-CHUNK_SIZE=1000
-CHUNK_OVERLAP=200
-
-```
+1. **Hybrid Search (BM25 + Vector):** Combining keyword frequency with semantic meaning to improve matching for specific technical acronyms (e.g., "VB.NET").
+2. **Reranking Layer:** Adding a Cross-Encoder stage to re-score results for even higher precision.
+3. **Observability:** Integrating **LangSmith** to monitor cost-per-query and retrieval latency in production.
 
 ---
 
-## 🏃 Usage
-
-### 1. Ingest Documents
-
-Place your PDF files into the `data/raw/` folder. Then run:
-
-```bash
-make ingest
-
-```
-
-* **What this does:**
-1. Loads PDFs from `data/raw`.
-2. Splits them into 1000-character chunks.
-3. Generates embeddings locally (using your CPU).
-4. Saves them to `data/vector_store`.
-
-
-
-### 2. Query the System
-
-Ask a question about your documents:
-
-```bash
-make query Q="What is the project code mentioned in the document?"
-
-```
-
-* **What this does:**
-1. Searches the local database for relevant chunks.
-2. Sends the chunks + your question to the LLM.
-3. Returns a grounded, accurate answer.
-
-
-
----
-
-## 🛠 Troubleshooting
-
-**Error: `429 Resource Exhausted**`
-
-* **Cause:** Google's free tier embedding quota is empty.
-* **Fix:** Ensure `EMBEDDING_PROVIDER=huggingface` is set in your `.env`. This forces the app to use local, free embeddings.
-
-**Error: `404 Not Found (models/gemini-...)**`
-
-* **Cause:** The model name in `.env` doesn't match what your API key allows (e.g., requesting `gemini-1.5` when your key is on a `gemini-2.5` beta tier).
-* **Fix:** Check your available models in Google AI Studio and update `GOOGLE_MODEL_NAME` in your `.env` to match exactly.
-
----
-
-## 🏗 Architecture
-
-```mermaid
-graph LR
-    A[PDF Files] -->|Ingest| B(Local Embeddings)
-    B -->|Persist| C[(ChromaDB)]
-    
-    D[User Query] -->|Search| C
-    C -->|Retrieved Context| E[Google Gemini]
-    E -->|Answer| F[User Output]
-    
-    style B fill:#f9f,stroke:#333
-    style E fill:#ccf,stroke:#333
-
-```
-
----
-
-## 📝 License
-
-This project is intended for educational and assessment purposes.
+**Author:** Lior Shilon
+**Date:** December 2025
