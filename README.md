@@ -64,7 +64,7 @@ ai_rag_assignment/
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/lior199707/ai_engineer_assessment.git
 cd ai_rag_assignment
 
 # Create and activate the Conda environment
