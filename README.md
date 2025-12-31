@@ -68,9 +68,18 @@ conda env create -f environment.yml
 # Activate the environment
 conda activate ai_rag_assignment
 
+# Configuration: Rename the example environment file
+mv .env.example .env
+
 ```
 
-### 3. Automation via Makefile
+### 3. Setup environment variables: Rename .env.example to .env.
+
+Windows (CMD): ren .env.example .env
+
+Mac/Linux/PowerShell: mv .env.example .env
+
+### 4. Automation via Makefile
 
 * **Build the Index (Ingestion):** `make ingest`
 * **Launch the Application (UI + API):** `make run`
@@ -109,7 +118,7 @@ ai_engineer_assessment/
 
 ---
 
-**Author:** [Your Name]
+**Author:** Lior Shilon
 **Date:** December 2025
 
 ---
