@@ -28,6 +28,9 @@ dependencies:
     - numpy
     - pandas
     - pypdf
+    - langchain-huggingface
+    - sentence-transformers
+    - google-generativeai  
 
     # Dev & Testing
     - pytest

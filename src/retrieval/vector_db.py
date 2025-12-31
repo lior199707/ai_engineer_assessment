@@ -2,17 +2,23 @@
 
 This module uses the Factory Pattern to provide a unified interface for 
 different vector database backends (e.g., Chroma, Pinecone). 
-It allows the application to switch databases just by changing configuration.
+It allows the application to switch databases and embedding providers 
+just by changing configuration.
 """
 
 import os
+import shutil
 from typing import List
 from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma
 from langchain_core.vectorstores import VectorStoreRetriever
+
+# Imports for all supported embedding providers
 from langchain_openai import OpenAIEmbeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from src.config import settings, LLMProvider, VectorDBType
+from langchain_huggingface import HuggingFaceEmbeddings
+
+from src.config import settings, EmbeddingProvider, VectorDBType
 from src.utils import setup_logger
 from src.retrieval.base import BaseVectorDB
 
@@ -33,19 +39,37 @@ class ChromaVectorDB(BaseVectorDB):
         self.embeddings = self._get_embedding_model()
 
     def _get_embedding_model(self):
-        """Selects the embedding model based on configuration."""
-        if settings.llm_provider == LLMProvider.GOOGLE:
+        """
+        Selects the embedding model based on configuration.
+        
+        Returns:
+            Embeddings: The initialized LangChain embedding model.
+            
+        Raises:
+            ValueError: If an unsupported provider is configured.
+        """
+        provider = settings.embedding_provider
+
+        if provider == EmbeddingProvider.GOOGLE:
             logger.info(f"Using Google Embeddings: {settings.google_embedding_model}")
             return GoogleGenerativeAIEmbeddings(
                 model=settings.google_embedding_model,
                 google_api_key=settings.google_api_key
             )
-        else:
+        
+        elif provider == EmbeddingProvider.OPENAI:
             logger.info(f"Using OpenAI Embeddings: {settings.openai_embedding_model}")
             return OpenAIEmbeddings(
                 model=settings.openai_embedding_model,
                 openai_api_key=settings.openai_api_key
             )
+            
+        elif provider == EmbeddingProvider.HUGGINGFACE:
+            logger.info(f"Using Local HuggingFace Embeddings: {settings.huggingface_embedding_model}")
+            return HuggingFaceEmbeddings(model_name=settings.huggingface_embedding_model)
+        
+        else:
+            raise ValueError(f"Unsupported Embedding Provider: {provider}")
 
     def create_vector_store(self, chunks: List[Document]) -> None:
         """Persists document chunks to disk using Chroma."""
@@ -55,6 +79,12 @@ class ChromaVectorDB(BaseVectorDB):
 
         logger.info(f"Persisting {len(chunks)} chunks to {self.persist_directory}...")
         try:
+            # Safety Check: If we switch embedding models, we MUST clear the old DB
+            # because dimensions will mismatch (e.g. 768 vs 384).
+            if os.path.exists(self.persist_directory):
+                logger.warning("Existing DB found. Clearing it to ensure dimension compatibility.")
+                shutil.rmtree(self.persist_directory)
+
             Chroma.from_documents(
                 documents=chunks,
                 embedding=self.embeddings,
