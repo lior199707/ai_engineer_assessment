@@ -1,139 +1,34 @@
-# Modular RAG System (AI Engineer Assessment)
+# 🤖 AI RAG Assignment: Hybrid Retrieval-Augmented Generation
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Conda](https://img.shields.io/badge/Conda-Env-green)
 ![Status](https://img.shields.io/badge/Status-Development-orange)
 
-A production-ready, modular RAG (Retrieval-Augmented Generation) pipeline designed for extensibility, maintainability, and clean separation of concerns. This project serves as a template for building robust AI applications involving document ingestion, vector retrieval, and LLM-based generation.
+A professional, modular RAG system built with **Python 3.10**, **LangChain**, and **ChromaDB**.
 
-## 🏗 Architecture
-
-The system is designed with a clear separation of concerns to ensure modularity and ease of testing:
-
-- **Ingestion Layer (`src/ingestion`):** Handles loading of raw documents (PDFs) and intelligent chunking using recursive character splitting.
-- **Retrieval Layer (`src/retrieval`):** Manages vector embeddings and persistence using ChromaDB. Supports **OpenAI** and **Google Gemini** embeddings.
-- **Generation Layer (`src/generation`):** Orchestrates the LLM and manages prompt templates via LangChain. Swappable support for **GPT-4o** and **Gemini 1.5 Flash**.
-- **Configuration:** Centralized `pydantic` settings management for strict typing and environment variable validation.
-
-## 🚀 Setup & Installation
-
-### Prerequisites
-- **Python 3.10+**
-- **Conda** (Anaconda or Miniconda)
-- **API Key:** Either OpenAI (Paid) or Google Gemini (Free Tier available)
-
-### 1. Clone the Repository
-```bash
-git clone <your-repo-url>
-cd ai_rag_assignment
-
-```
-
-### 2. Initial Environment Setup
-
-Create the environment and install all dependencies (including `make` and `pre-commit`).
-
-```bash
-conda env update --file environment.yml --prune
-conda activate ai_rag_assignment
-
-```
-
-### 3. Install Git Hooks
-
-This ensures code quality checks run automatically before every commit.
-
-```bash
-make install
-
-```
-
-### 4. Configure Environment Variables
-
-Copy the example configuration file to create your local `.env` file.
-
-**Linux / Mac / PowerShell / Git Bash:**
-
-```bash
-cp .env.example .env
-
-```
-
-**Windows (Command Prompt):**
-
-```cmd
-copy .env.example .env
-
-```
-
-Open `.env` and configure your provider:
-
-**Option A: Use Google Gemini (Free Tier)**
-
-```ini
-LLM_PROVIDER=google
-GOOGLE_API_KEY=AIzaSy...
-
-```
-
-**Option B: Use OpenAI**
-
-```ini
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-...
-
-```
+This project implements a **Hybrid Architecture** that combines the reasoning power of **Google Gemini** (Cloud) with the speed and privacy of **HuggingFace Embeddings** (Local/CPU).
 
 ---
 
-## 🛠 Development & Automation
+## 🛠 Tech Stack
 
-This project uses a `Makefile` to automate common development tasks.
-
-| Command | Description |
-| --- | --- |
-| `make install` | Updates Conda environment and installs pre-commit hooks |
-| `make format` | Formats code using Ruff |
-| `make lint` | Checks for linting errors |
-| `make test` | Runs the test suite |
-| `make clean` | Removes cache files (Cross-platform safe) |
+* **Orchestration:** LangChain
+* **LLM Support:** Google Gemini (1.5 / 2.5), OpenAI GPT-4o
+* **Embedding Support:** HuggingFace (Local), Google GenAI, OpenAI
+* **Vector Database:** ChromaDB (Local)
+* **Configuration:** Pydantic Settings
+* **Quality Control:** Ruff, Pre-commit
 
 ---
 
-## 🏃 Usage
+## 🌟 Key Features
 
-### 1. Ingest Documents
-
-Place your source PDF files into the `data/raw/` directory.
-
-```bash
-make ingest
-
-```
-
-*Output: Vector store will be created in `data/vector_store/`.*
-
-### 2. Query the System
-
-Ask questions based on the ingested documents.
-
-```bash
-make query Q="What are the key findings?"
-
-```
-
----
-
-## 🧪 Testing
-
-The project includes a test suite configured with `pytest`.
-
-To run all tests:
-
-```bash
-make test
-
-```
+* **Hybrid RAG Architecture:**
+    * 🧠 **Brain:** Cloud LLM (Google Gemini / OpenAI).
+    * 📚 **Memory:** Local Embeddings (`all-MiniLM-L6-v2`) for zero-latency, free retrieval.
+* **Factory Pattern Design:** Easily switch between OpenAI, Google, or Local models via configuration.
+* **Robust Ingestion Pipeline:** Auto-cleans database on schema changes to prevent dimension mismatch errors.
+* **Developer Friendly:** Includes a `Makefile` for one-command execution and Type-safe configuration.
 
 ---
 
@@ -141,34 +36,146 @@ make test
 
 ```text
 ai_rag_assignment/
-├── config/                 # Static configuration files
 ├── data/
-│   ├── raw/                # Input documents (PDFs) go here
-│   └── vector_store/       # Persisted ChromaDB files
+│   ├── raw/                 # Drop your PDFs here
+│   └── vector_store/        # Auto-generated ChromaDB files (Git-ignored)
 ├── src/
-│   ├── ingestion/          # Data loading & splitting logic
-│   ├── retrieval/          # Vector DB & Embedding management
-│   ├── generation/         # LLM interaction & Prompt templates
-│   ├── utils/              # Helper utilities (Logger)
-│   ├── config.py           # Pydantic settings & Enum definitions
-│   └── main.py             # CLI Entry point
-├── tests/                  # Unit and Integration tests
-├── .env.example            # Template for environment variables
-├── .gitignore              # Git ignore rules
-├── environment.yml         # Conda environment definition
-├── Makefile                # Task automation
-└── README.md               # Project documentation
+│   ├── ingestion/           # Document loading & splitting logic
+│   ├── retrieval/           # Vector DB & Embedding factory
+│   ├── generation/          # LLM interface (Gemini/OpenAI)
+│   ├── config.py            # Centralized settings management
+│   └── main.py              # CLI Entry point
+├── environment.yml          # Conda environment definition
+├── Makefile                 # Shortcut commands
+└── README.md                # Project documentation
 
 ```
 
-## 🛠 Tech Stack
+---
 
-* **Orchestration:** LangChain
-* **LLM Support:** OpenAI GPT-4o, Google Gemini 1.5 Flash
-* **Vector Database:** ChromaDB (Local)
-* **Configuration:** Pydantic Settings
-* **Quality Control:** Ruff, Pre-commit
+## 🚀 Setup & Installation
+
+### 1. Prerequisites
+
+* **Conda** (Anaconda or Miniconda)
+* A **Google Gemini API Key** (Get it from [Google AI Studio](https://aistudio.google.com/))
+
+### 2. Clone & Environment
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd ai_rag_assignment
+
+# Create and activate the Conda environment
+conda env update --file environment.yml --prune
+conda activate ai_rag_assignment
+
+```
+
+### 3. Configuration (.env)
+
+Create a `.env` file in the root directory:
+
+```ini
+# .env file
+
+# --- API Keys ---
+GOOGLE_API_KEY=your_actual_api_key_here
+
+# --- Model Selection ---
+# Use the model version available to your API key (e.g., gemini-1.5-flash or gemini-2.5-flash)
+GOOGLE_MODEL_NAME=gemini-2.5-flash
+
+# --- Architecture Settings ---
+LLM_PROVIDER=google
+EMBEDDING_PROVIDER=huggingface
+VECTOR_DB_TYPE=chroma
+
+# --- Ingestion Settings ---
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+
+```
+
+---
+
+## 🏃 Usage
+
+### 1. Ingest Documents
+
+Place your PDF files into the `data/raw/` folder. Then run:
+
+```bash
+make ingest
+
+```
+
+* **What this does:**
+1. Loads PDFs from `data/raw`.
+2. Splits them into 1000-character chunks.
+3. Generates embeddings locally (using your CPU).
+4. Saves them to `data/vector_store`.
+
+
+
+### 2. Query the System
+
+Ask a question about your documents:
+
+```bash
+make query Q="What is the project code mentioned in the document?"
+
+```
+
+* **What this does:**
+1. Searches the local database for relevant chunks.
+2. Sends the chunks + your question to the LLM.
+3. Returns a grounded, accurate answer.
+
+
+
+---
+
+## 🛠 Troubleshooting
+
+**Error: `429 Resource Exhausted**`
+
+* **Cause:** Google's free tier embedding quota is empty.
+* **Fix:** Ensure `EMBEDDING_PROVIDER=huggingface` is set in your `.env`. This forces the app to use local, free embeddings.
+
+**Error: `404 Not Found (models/gemini-...)**`
+
+* **Cause:** The model name in `.env` doesn't match what your API key allows (e.g., requesting `gemini-1.5` when your key is on a `gemini-2.5` beta tier).
+* **Fix:** Check your available models in Google AI Studio and update `GOOGLE_MODEL_NAME` in your `.env` to match exactly.
+
+---
+
+## 🏗 Architecture
+
+```mermaid
+graph LR
+    A[PDF Files] -->|Ingest| B(Local Embeddings)
+    B -->|Persist| C[(ChromaDB)]
+    
+    D[User Query] -->|Search| C
+    C -->|Retrieved Context| E[Google Gemini]
+    E -->|Answer| F[User Output]
+    
+    style B fill:#f9f,stroke:#333
+    style E fill:#ccf,stroke:#333
+
+```
+
+---
 
 ## 📝 License
 
 This project is intended for educational and assessment purposes.
+
+```
+
+### Next Step
+You are all set! Copy this content into your `README.md`, commit your changes, and you are ready for tomorrow. Good luck with the assignment!
+
+```
